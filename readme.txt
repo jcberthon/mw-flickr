@@ -1,4 +1,4 @@
-=== Plugin Name ===
+=== Magical World Flickr Plugin ===
 Contributors: jcberthon
 Tags: gallery, flickr, widget
 Requires at least: 2.8
