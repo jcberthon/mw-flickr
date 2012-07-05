@@ -1,7 +1,7 @@
 <?php
 /*
-Plugin Name: WP Flickr
-Plugin URI: https://github.com/jcberthon/wp-flickr
+Plugin Name: Magical World Flickr Plugin
+Plugin URI: https://github.com/jcberthon/mw-flickr
 Description: Display photos for Flickr (filtering possible) in a widget, one can place in a compatible Theme.
 Version: 1.0
 Author: Jean-Christophe Berthon
@@ -27,14 +27,14 @@ License: GPL3
     along with this program.  If not, see <http://www.gnu.org/licenses/>.
 */
 
-class JCB_Flickr_Widget extends WP_Widget {
+class MW_Flickr_Widget extends WP_Widget {
 
   /**
    * Register widget with WordPress.
    */
   public function __construct() {
     parent::__construct(
-      'jcb_flickr_widget', // Base ID
+      'mw_flickr_widget', // Base ID
       'Wordpress Flickr Widget', // Name
       array( 'description' => __( 'Display photos from Flickr.', 'text_domain' ) ) // Args
     );
@@ -220,9 +220,9 @@ class JCB_Flickr_Widget extends WP_Widget {
   }
 
 
-} // class JCB_Flickr_Widget
+} // class MW_Flickr_Widget
 
-// register JCB_Flickr_Widget widget
-add_action( 'widgets_init', create_function( '', 'register_widget( "jcb_flickr_widget" );' ) );
+// register MW_Flickr_Widget widget
+add_action( 'widgets_init', create_function( '', 'register_widget( "mw_flickr_widget" );' ) );
 
 ?>
