@@ -16,6 +16,10 @@ The current features are:
 
 The code is under a free software license: GPLv3 http://www.gnu.org/licenses/gpl-3.0.html
 
+Installation
+------------
+
+Please read the file readme.txt which details all installation instructions.
 
 Credits
 -------
