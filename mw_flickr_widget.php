@@ -32,6 +32,7 @@ class MW_Flickr_Widget extends WP_Widget {
   const FLCKR_API_KEY            = '0fce216627cfb9e95bc32abd0594e483';
   const FLCKR_API_REST_URL       = 'https://api.flickr.com/services/rest/';
   const FLCKR_SQR_THUMBNAIL_SIZE = 75;
+  /* TODO: add other sizes here */
   const FLCKR_IMG_URL_SCHEME     = 'https://';
   const FLCKR_IMG_URL_DOMAIN     = '.staticflickr.com';
 
@@ -73,12 +74,14 @@ class MW_Flickr_Widget extends WP_Widget {
     echo '<div class="' . $class . '">';
 
     if ( $fapi ) {
+      /* TODO: verify browser compatibility with the CSS3 'transition' */
       ?>
       <style>
         div.<?php echo $class; ?> img {
           opacity:0;
           -webkit-transition: opacity 2s;
           -moz-transition: opacity 2s;
+          -o-transition: opacity 2s;
           transition: opacity 2s;
         }
 
@@ -88,8 +91,13 @@ class MW_Flickr_Widget extends WP_Widget {
       </style>
       <?php
       for ($i = 0; $i < $postcount; $i++) {
+        /* TODO: use constant for the img dimensions, depending on user's choice */
         echo '<img id="flckrmg' . $i . '" width="75" height="75" />';
       }
+      /* TODO: in the JS code, only do random if requested by user
+       * Only random is currently implemented, implement latest as well.
+       * Random is implemented so it looks random. An area for improvement!
+       */
       ?>
       <script type="text/javascript">
       function jsonFlickrApi(rsp) {
@@ -120,6 +128,7 @@ class MW_Flickr_Widget extends WP_Widget {
       </script>
       <?php
       echo '<script async type="text/javascript"';
+      /* TODO: here we should call other functions of the Flickr API if need be */
       echo '  src="' . self::FLCKR_API_REST_URL . '/?format=json&sort=interestingness-desc&' .
           'user_id=' . $flickrID . '&method=flickr.photos.search&page=1&per_page=128&api_key=' .
           self::FLCKR_API_KEY . '">';
