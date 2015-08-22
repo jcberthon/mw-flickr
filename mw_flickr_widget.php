@@ -3,7 +3,7 @@
 Plugin Name: Magical World Flickr Plugin
 Plugin URI: https://github.com/jcberthon/mw-flickr
 Description: Display photos for Flickr (filtering possible) in a widget, one can place in a compatible Theme.
-Version: 1.0
+Version: 1.1
 Author: Jean-Christophe Berthon
 Author URI: http://www.berthon.eu/
 License: GPL3
@@ -28,6 +28,12 @@ License: GPL3
 */
 
 class MW_Flickr_Widget extends WP_Widget {
+
+  const FLCKR_API_KEY            = '0fce216627cfb9e95bc32abd0594e483';
+  const FLCKR_API_REST_URL       = 'https://api.flickr.com/services/rest/';
+  const FLCKR_SQR_THUMBNAIL_SIZE = 75;
+  const FLCKR_IMG_URL_SCHEME     = 'https://';
+  const FLCKR_IMG_URL_DOMAIN     = '.staticflickr.com';
 
   /**
    * Register widget with WordPress.
@@ -58,28 +64,95 @@ class MW_Flickr_Widget extends WP_Widget {
     $display   = $instance['display'];
     $size      = $instance['size'];
     $tag       = $instance['tag'];
+    $fapi      = $instance['fapi'];
 
     echo $before_widget;
     if ( ! empty( $title ) ) {
       echo $before_title . $title . $after_title;
     }
     echo '<div class="' . $class . '">';
-    if ( empty( $tag ) ) {
+
+    if ( $fapi ) {
       ?>
-      <script
-        type="text/javascript"
-        src="https://www.flickr.com/badge_code_v2.gne?count=<?php echo $postcount ?>&amp;display=<?php echo $display ?>&amp;size=<?php echo $size ?>&amp;layout=v&amp;source=<?php echo $type ?>&amp;<?php echo $type ?>=<?php echo $flickrID ?>">
+      <style>
+        div.<?php echo $class; ?> img {
+          opacity:0;
+          -webkit-transition: opacity 2s;
+          -moz-transition: opacity 2s;
+          transition: opacity 2s;
+        }
+
+        div.<?php echo $class; ?> img.fadein {
+          opacity:1;
+        }
+      </style>
+      <?php
+      for ($i = 0; $i < $postcount; $i++) {
+        echo '<img id="flckrmg' . $i . '" width="75" height="75" />';
+      }
+      ?>
+      <script type="text/javascript">
+      function jsonFlickrApi(rsp) {
+        if (rsp.stat != "ok"){
+          return;
+        }
+
+        for (var i = 0; i < <?php echo $postcount; ?> ; i++) {
+          var rand = Math.random();
+          rand = rand * 128;
+          rand = Math.ceil(rand);
+
+          var photo = rsp.photos.photo[ rand ];
+
+          var t_url = "<?php echo self::FLCKR_IMG_URL_SCHEME; ?>farm" + photo.farm +
+              "<?php echo self::FLCKR_IMG_URL_DOMAIN; ?>/" + photo.server + "/" +
+              photo.id + "_" + photo.secret + "_s.jpg";
+
+          var image = document.getElementById('flckrmg' + i);
+          image.src = t_url;
+          if (image.className) {
+            image.className = '';
+          } else {
+            image.className = 'fadein';
+          }
+        }
+      }
       </script>
       <?php
+      echo '<script async type="text/javascript"';
+      echo '  src="' . self::FLCKR_API_REST_URL . '/?format=json&sort=interestingness-desc&' .
+          'user_id=' . $flickrID . '&method=flickr.photos.search&page=1&per_page=128&api_key=' .
+          self::FLCKR_API_KEY . '">';
+      echo '</script>';
+
     }
-    elseif ( ! empty( $tag ) ) {
+    else {
       ?>
-      <script
-        type="text/javascript"
-        src="https://www.flickr.com/badge_code_v2.gne?count=<?php echo $postcount ?>&amp;display=<?php echo $display ?>&amp;size=<?php echo $size ?>&amp;layout=v&amp;source=<?php echo $type ?>_tag&amp;<?php echo $type ?>=<?php echo $flickrID ?>&amp;tag=<?php echo $tag ?>">
-      </script>
+      <!-- Preconnect to the images farm servers to increase parallelism and performance -->
+      <link href="https://farm1.staticflickr.com" rel="preconnect" pr="0.5">
+      <link href="https://farm2.staticflickr.com" rel="preconnect" pr="0.5">
+      <link href="https://farm3.staticflickr.com" rel="preconnect" pr="0.75">
+      <link href="https://farm4.staticflickr.com" rel="preconnect" pr="0.75">
+      <link href="https://farm5.staticflickr.com" rel="preconnect" pr="0.5">
       <?php
+      if ( empty( $tag ) ) {
+        ?>
+        <script
+          type="text/javascript"
+          src="https://www.flickr.com/badge_code_v2.gne?count=<?php echo $postcount ?>&amp;display=<?php echo $display ?>&amp;size=<?php echo $size ?>&amp;layout=v&amp;source=<?php echo $type ?>&amp;<?php echo $type ?>=<?php echo $flickrID ?>">
+        </script>
+        <?php
+      }
+      elseif ( ! empty( $tag ) ) {
+        ?>
+        <script
+          type="text/javascript"
+          src="https://www.flickr.com/badge_code_v2.gne?count=<?php echo $postcount ?>&amp;display=<?php echo $display ?>&amp;size=<?php echo $size ?>&amp;layout=v&amp;source=<?php echo $type ?>_tag&amp;<?php echo $type ?>=<?php echo $flickrID ?>&amp;tag=<?php echo $tag ?>">
+        </script>
+        <?php
+      }
     }
+
     echo '</div>';
     echo $after_widget;
   }
@@ -114,6 +187,14 @@ class MW_Flickr_Widget extends WP_Widget {
     $instance['tag']       = self::sanitize( strip_tags( $new_instance['tag'] ) );
     $instance['inline']    = $new_instance['true'];
     $instance['display']   = $new_instance['display'];
+    $fapi = $new_instance['fapi'];
+    if ( 'Flickr API' == $fapi )
+      $instance['fapi'] = True;
+    elseif ( 'Flickr Badge' == $fapi )
+      $instance['fapi'] = False;
+    else
+      $instance['fapi'] = True;
+
 
     return $instance;
   }
@@ -128,12 +209,13 @@ class MW_Flickr_Widget extends WP_Widget {
   public function form( $instance ) {
     $title      = isset( $instance[ 'title' ] )     ? $instance[ 'title' ]     : __( 'Photos', 'text_domain' );
     $class      = isset( $instance[ 'class' ] )     ? $instance[ 'class' ]     : __( 'flickr', 'text_domain' );
-    $flickr_id  = isset( $instance[ 'flickrID' ] )  ? $instance[ 'flickrID' ]  : __( '10630381@N03', 'text_domain' );
-    $post_count = isset( $instance[ 'postcount' ] ) ? $instance[ 'postcount' ] : __( '5', 'text_domain' );
+    $flickr_id  = isset( $instance[ 'flickrID' ] )  ? $instance[ 'flickrID' ]  : '10630381@N03';
+    $post_count = isset( $instance[ 'postcount' ] ) ? $instance[ 'postcount' ] : 5;
     $type       = isset( $instance[ 'type' ] )      ? $instance[ 'type' ]      : __( 'user', 'text_domain' );
     $display    = isset( $instance[ 'display' ] )   ? $instance[ 'display' ]   : __( 'latest', 'text_domain' );
     $size       = isset( $instance[ 'size' ] )      ? $instance[ 'size' ]      : __( 's', 'text_domain' );
     $tag        = isset( $instance[ 'tag' ] )       ? $instance[ 'tag' ]       : __( '', 'text_domain' );
+    $fapi       = isset( $instance[ 'fapi'] )       ? $instance[ 'fapi' ]       : True;
     ?>
     <p>
       <label for="<?php echo $this->get_field_id( 'title' ); ?>"><?php _e( 'Title:' ); ?></label>
@@ -150,16 +232,16 @@ class MW_Flickr_Widget extends WP_Widget {
     <p>
       <label for="<?php echo $this->get_field_id( 'postcount' ); ?>"><?php _e( 'Number of photos:' ); ?></label>
       <select class="widefat" id="<?php echo $this->get_field_id( 'postcount' ); ?>" name="<?php echo $this->get_field_name( 'postcount' ); ?>">
-        <option <?php if ( '1' == $post_count ) echo 'selected="selected"'; ?>>1</option>
-        <option <?php if ( '2' == $post_count ) echo 'selected="selected"'; ?>>2</option>
-        <option <?php if ( '3' == $post_count ) echo 'selected="selected"'; ?>>3</option>
-        <option <?php if ( '4' == $post_count ) echo 'selected="selected"'; ?>>4</option>
-        <option <?php if ( '5' == $post_count ) echo 'selected="selected"'; ?>>5</option>
-        <option <?php if ( '6' == $post_count ) echo 'selected="selected"'; ?>>6</option>
-        <option <?php if ( '7' == $post_count ) echo 'selected="selected"'; ?>>7</option>
-        <option <?php if ( '8' == $post_count ) echo 'selected="selected"'; ?>>8</option>
-        <option <?php if ( '9' == $post_count ) echo 'selected="selected"'; ?>>9</option>
-        <option <?php if ( '10' == $post_count ) echo 'selected="selected"'; ?>>10</option>
+        <option <?php if (  1 == $post_count ) echo 'selected="selected"'; ?>>1</option>
+        <option <?php if (  2 == $post_count ) echo 'selected="selected"'; ?>>2</option>
+        <option <?php if (  3 == $post_count ) echo 'selected="selected"'; ?>>3</option>
+        <option <?php if (  4 == $post_count ) echo 'selected="selected"'; ?>>4</option>
+        <option <?php if (  5 == $post_count ) echo 'selected="selected"'; ?>>5</option>
+        <option <?php if (  6 == $post_count ) echo 'selected="selected"'; ?>>6</option>
+        <option <?php if (  7 == $post_count ) echo 'selected="selected"'; ?>>7</option>
+        <option <?php if (  8 == $post_count ) echo 'selected="selected"'; ?>>8</option>
+        <option <?php if (  9 == $post_count ) echo 'selected="selected"'; ?>>9</option>
+        <option <?php if ( 10 == $post_count ) echo 'selected="selected"'; ?>>10</option>
       </select>
     </p>
     <!--
@@ -189,6 +271,13 @@ class MW_Flickr_Widget extends WP_Widget {
     <p>
       <label for="<?php echo $this->get_field_id( 'tag' ); ?>"><?php _e( 'Filter by tag (leave empty for no filter):' ); ?></label>
       <input class="widefat" id="<?php echo $this->get_field_id( 'tag' ); ?>" name="<?php echo $this->get_field_name( 'tag' ); ?>" type="text" value="<?php echo esc_attr( $tag ); ?>" />
+    </p>
+    <p>
+      <label for="<?php echo $this->get_field_id( 'fapi' ); ?>"><?php _e( 'Use Flickr API (modern way) or old Flickr Badge JS:' ); ?></label>
+      <select class="widefat" id="<?php echo $this->get_field_id( 'fapi' ); ?>" name="<?php echo $this->get_field_name( 'fapi' ); ?>">
+        <option <?php if ( True == $fapi )  echo 'selected="selected"'; ?>>Flickr API</option>
+        <option <?php if ( False == $fapi ) echo 'selected="selected"'; ?>>Flickr Badge</option>
+      </select>
     </p>
     <?php
   }
