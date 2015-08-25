@@ -35,7 +35,7 @@ class MW_Flickr_Widget extends WP_Widget {
   /* TODO: add other sizes here */
   const FLCKR_URL_SCHEME         = 'https://';
   const FLCKR_IMG_URL_DOMAIN     = '.staticflickr.com';
-  const FLCKR_PGE_URL_DOMAIN     = 'www.flickr.com'
+  const FLCKR_PGE_URL_DOMAIN     = 'www.flickr.com';
 
   /**
    * Register widget with WordPress.
@@ -96,8 +96,8 @@ class MW_Flickr_Widget extends WP_Widget {
          *   1. use constant for the img dimensions, depending on user's choice
          *   2. use javascript, when mouse hover link, call preconnect at least...
          */
-        echo '<a id="flckrlnk' . $i . '" href="#" rel="external">'
-        echo '  <img id="flckrmg' . $i . '" width="75" height="75" />'
+        echo '<a id="flckrlnk' . $i . '" href="#" rel="external">';
+        echo '  <img id="flckrmg' . $i . '" width="75" height="75" />';
         echo '</a>';
       }
       /* TODO: in the JS code, only do random if requested by user
