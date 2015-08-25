@@ -21,6 +21,9 @@ Display photos for Flickr (filtering possible) in a widget, one can place in a c
 
 == Changelog ==
 
+= 1.2 =
+* Add links to Flickr photo page when using the new Flickr API back-end
+
 = 1.1 =
 * Try to be smarter with preconnect when using the older API (Flickr Badge)
 * New API, directly connect to Flickr API (work-in-progress)

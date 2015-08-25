@@ -3,7 +3,7 @@
 Plugin Name: Magical World Flickr Plugin
 Plugin URI: https://github.com/jcberthon/mw-flickr
 Description: Display photos for Flickr (filtering possible) in a widget, one can place in a compatible Theme.
-Version: 1.1
+Version: 1.2
 Author: Jean-Christophe Berthon
 Author URI: http://www.berthon.eu/
 License: GPL3
@@ -11,7 +11,7 @@ License: GPL3
 
 /*
     Wordpress Plug-in to interact with Flickr
-    Copyright (C) 2012  Jean-Christophe Berthon
+    Copyright (C) 2012-2015  Jean-Christophe Berthon
 
     This program is free software: you can redistribute it and/or modify
     it under the terms of the GNU General Public License as published by
@@ -33,8 +33,9 @@ class MW_Flickr_Widget extends WP_Widget {
   const FLCKR_API_REST_URL       = 'https://api.flickr.com/services/rest/';
   const FLCKR_SQR_THUMBNAIL_SIZE = 75;
   /* TODO: add other sizes here */
-  const FLCKR_IMG_URL_SCHEME     = 'https://';
+  const FLCKR_URL_SCHEME         = 'https://';
   const FLCKR_IMG_URL_DOMAIN     = '.staticflickr.com';
+  const FLCKR_PGE_URL_DOMAIN     = 'www.flickr.com'
 
   /**
    * Register widget with WordPress.
@@ -91,8 +92,13 @@ class MW_Flickr_Widget extends WP_Widget {
       </style>
       <?php
       for ($i = 0; $i < $postcount; $i++) {
-        /* TODO: use constant for the img dimensions, depending on user's choice */
-        echo '<img id="flckrmg' . $i . '" width="75" height="75" />';
+        /* TODO:
+         *   1. use constant for the img dimensions, depending on user's choice
+         *   2. use javascript, when mouse hover link, call preconnect at least...
+         */
+        echo '<a id="flckrlnk' . $i . '" href="#" rel="external">'
+        echo '  <img id="flckrmg' . $i . '" width="75" height="75" />'
+        echo '</a>';
       }
       /* TODO: in the JS code, only do random if requested by user
        * Only random is currently implemented, implement latest as well.
@@ -112,17 +118,22 @@ class MW_Flickr_Widget extends WP_Widget {
 
           var photo = rsp.photos.photo[ rand ];
 
-          var t_url = "<?php echo self::FLCKR_IMG_URL_SCHEME; ?>farm" + photo.farm +
+          var i_url = "<?php echo self::FLCKR_URL_SCHEME; ?>farm" + photo.farm +
               "<?php echo self::FLCKR_IMG_URL_DOMAIN; ?>/" + photo.server + "/" +
               photo.id + "_" + photo.secret + "_s.jpg";
+          var a_url = "<?php echo self::FLCKR_URL_SCHEME . self::FLCKR_PGE_URL_DOMAIN; ?>/photos/" +
+              photo.owner + "/" + photo.id + "/";
 
           var image = document.getElementById('flckrmg' + i);
-          image.src = t_url;
+          image.src = i_url;
+          image.title = photo.title;
+          image.alt = "Photo by Magical-World with title: " + photo.title;
           if (image.className) {
             image.className = '';
           } else {
             image.className = 'fadein';
           }
+          document.getElementById('flckrlnk' + i).href = a_url;
         }
       }
       </script>

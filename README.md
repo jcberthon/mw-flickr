@@ -3,7 +3,7 @@ mw-flickr
 
 A WordPress plugin which adds a simple widget to display some small pictures from a flickr account (random, most interesting, etc.).
 
-It is a modernized version of the defunct Flickr Badge which allowed embedding some small thumbnails in our blogs.
+It is a modernized version of the defunct Flickr Badge which allowed embedding some small thumbnails in our blogs. However it is not yet feature complete (work-in-progress, contributions welcome).
 
 Description
 -----------
@@ -24,6 +24,18 @@ Installation
 ------------
 
 Please read the file readme.txt which details all installation instructions.
+
+
+Contributing
+------------
+
+Anyone can contribute. Simply clone the Git project and send me a patch, or use
+GitHub fork and propose a pull request.
+
+Contributions will only be accepted if provided under the same licensing terms as the plugin.
+It will be assumed that by default any patch or pull request agree to the plugin license terms.
+
+Contributions will be credited accordingly in the next chapter (and in git history of course!).
 
 Credits
 -------
